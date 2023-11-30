@@ -1,0 +1,121 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Process
+{
+    int id;
+    int burstTime;
+    int arrivalTime;
+    int completionTime;
+    int turnAroundTime;
+    int waitingTime;
+    int priority;
+};
+
+// Constructor for Process
+struct Process createProcess(int id, int burstTime, int arrivalTime, int priority)
+{
+    struct Process process;
+    process.id = id;
+    process.burstTime = burstTime;
+    process.arrivalTime = arrivalTime;
+    process.priority = priority;
+    process.completionTime = 0;
+    process.turnAroundTime = 0;
+    process.waitingTime = 0;
+    return process;
+}
+
+// Getter methods
+int getId(const struct Process *p) { return p->id; }
+int getBurstTime(const struct Process *p) { return p->burstTime; }
+int getArrivalTime(const struct Process *p) { return p->arrivalTime; }
+int getCompletionTime(const struct Process *p) { return p->completionTime; }
+int getTurnAroundTime(const struct Process *p) { return p->turnAroundTime; }
+int getWaitingTime(const struct Process *p) { return p->waitingTime; }
+int getPriority(const struct Process *p) { return p->priority; }
+
+// Setter methods
+void setCompletionTime(struct Process *p, int time) { p->completionTime = time; }
+void setTurnAroundTime(struct Process *p, int time) { p->turnAroundTime = time; }
+void setWaitingTime(struct Process *p, int time) { p->waitingTime = time; }
+
+// Comparison functions
+int compareByArrival(const void *a, const void *b)
+{
+    return getArrivalTime((const struct Process *)a) - getArrivalTime((const struct Process *)b);
+}
+
+int compareByPriority(const void *a, const void *b)
+{
+    return getPriority((const struct Process *)a) - getPriority((const struct Process *)b);
+}
+
+int compareById(const void *a, const void *b)
+{
+    return getId((const struct Process *)a) - getId((const struct Process *)b);
+}
+
+// Modify the display function to sort by ID before displaying
+void display(struct Process processes[], int jobCount)
+{
+    // Sort the processes by ID in ascending order
+    qsort(processes, jobCount, sizeof(struct Process), compareById);
+
+    printf("\n\n\t\t The Process Status \n\n");
+    printf("\tProcess ID\tArrival Time\tBurst Time\tCompletion Time\tTurn Around Time\tWaiting Time");
+
+    for (int i = 0; i < jobCount; i++)
+    {
+        printf("\n\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d", getId(&processes[i]), getArrivalTime(&processes[i]),
+               getBurstTime(&processes[i]), getCompletionTime(&processes[i]), getTurnAroundTime(&processes[i]),
+               getWaitingTime(&processes[i]));
+    }
+}
+
+void PriorityScheduling_NonPreemptive(struct Process processes[], int jobCount)
+{
+    int curTime = 0;
+    qsort(processes, jobCount, sizeof(struct Process), compareByArrival); // Sort processes by arrival time
+
+    for (int i = 0; i < jobCount; i++)
+    {
+        if (getArrivalTime(&processes[i]) > curTime)
+        {
+            curTime = getArrivalTime(&processes[i]);
+        }
+
+        setCompletionTime(&processes[i], curTime + getBurstTime(&processes[i]));
+        setTurnAroundTime(&processes[i], getCompletionTime(&processes[i]) - getArrivalTime(&processes[i]));
+        setWaitingTime(&processes[i], getTurnAroundTime(&processes[i]) - getBurstTime(&processes[i]));
+
+        curTime = getCompletionTime(&processes[i]);
+    }
+
+    display(processes, jobCount);
+}
+
+int main()
+{
+    int jobCount;
+    printf("\nNo. of processes : ");
+    scanf("%d", &jobCount);
+
+    struct Process processes[jobCount];
+
+    for (int i = 0; i < jobCount; i++)
+    {
+        int burstTime, arrivalTime, priority;
+        printf("\nEnter the Process Arrival Time for Process %d: ", i + 1);
+        scanf("%d", &arrivalTime);
+        printf("Enter the Process Burst Time for Process %d: ", i + 1);
+        scanf("%d", &burstTime);
+        printf("Enter the Process Priority for Process %d: ", i + 1);
+        scanf("%d", &priority);
+        processes[i] = createProcess(i + 1, burstTime, arrivalTime, priority);
+    }
+
+    PriorityScheduling_NonPreemptive(processes, jobCount);
+
+    return 0;
+}

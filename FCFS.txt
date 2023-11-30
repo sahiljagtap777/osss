@@ -1,0 +1,78 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Process
+{
+    int id;
+    int burstTime;
+    int arrivalTime;
+    int completionTime;
+    int turnAroundTime;
+    int waitingTime;
+};
+
+int compareByArrival(const void *a, const void *b)
+{
+    return ((struct Process *)a)->arrivalTime - ((struct Process *)b)->arrivalTime;
+}
+
+int compareById(const void *a, const void *b)
+{
+    return ((struct Process *)a)->id - ((struct Process *)b)->id;
+}
+
+void display(struct Process P[], int jobCount)
+{
+    qsort(P, jobCount, sizeof(struct Process), compareById); // Sort processes by PID
+    printf("\n\n\t\t The Process Status \n\n");
+    printf("\tProcess ID\tArrival Time\tBurst Time\tCompletion Time\tTurn Around Time\tWaiting Time");
+    for (int i = 0; i < jobCount; ++i)
+        printf("\n\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d", P[i].id, P[i].arrivalTime, P[i].burstTime,
+               P[i].completionTime, P[i].turnAroundTime, P[i].waitingTime);
+    printf("\n\n\n");
+}
+
+void getData(struct Process P[], int *jobCount)
+{
+    int x;
+    for (int i = 0; i < *jobCount; i++)
+    {
+        P[i].id = i + 1;
+        printf("\nProcess ID: %d", P[i].id);
+        printf("\nEnter the Process Arrival Time: ");
+        scanf("%d", &x);
+        P[i].arrivalTime = x;
+        printf("\nEnter the Process Burst Time: ");
+        scanf("%d", &x);
+        P[i].burstTime = x;
+    }
+}
+
+void FirstComeFirstServed(struct Process P[], int jobCount)
+{
+    qsort(P, jobCount, sizeof(struct Process), compareByArrival);
+
+    for (int i = 0, prevEnd = 0; i < jobCount; i++)
+    {
+        P[i].completionTime = (prevEnd > P[i].arrivalTime ? prevEnd : P[i].arrivalTime) + P[i].burstTime;
+        P[i].turnAroundTime = P[i].completionTime - P[i].arrivalTime;
+        P[i].waitingTime = P[i].turnAroundTime - P[i].burstTime;
+        prevEnd = P[i].completionTime;
+    }
+
+    display(P, jobCount);
+}
+
+int main()
+{
+    int jobCount;
+    printf("\nNo. of processes: ");
+    scanf("%d", &jobCount);
+
+    struct Process P[jobCount];
+    getData(P, &jobCount);
+
+    FirstComeFirstServed(P, jobCount);
+
+    return 0;
+}

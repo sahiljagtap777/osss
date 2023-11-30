@@ -1,0 +1,122 @@
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <map>
+#include <limits.h>
+
+using namespace std;
+
+class Process
+{
+    int id;
+    int burstTime;
+    int arrivalTime;
+    int completionTime;
+    int turnAroundTime;
+    int waitingTime;
+
+public:
+    int getId() const { return id; }
+    int getBurstTime() const { return burstTime; }
+    int getArrivalTime() const { return arrivalTime; }
+    int getCompletionTime() const { return completionTime; }
+    int getTurnAroundTime() const { return turnAroundTime; }
+    int getWaitingTime() const { return waitingTime; }
+
+    void setId(int id) { this->id = id; }
+    void setBurstTime(int burstTime) { this->burstTime = burstTime; }
+    void setArrivalTime(int arrivalTime) { this->arrivalTime = arrivalTime; }
+    void setCompletionTime(int completionTime) { this->completionTime = completionTime; }
+    void setTurnAroundTime(int turnAroundTime) { this->turnAroundTime = turnAroundTime; }
+    void setWaitingTime(int waitingTime) { this->waitingTime = waitingTime; }
+};
+
+bool compareByArrival(const Process &p, const Process &q)
+{
+    if (p.getArrivalTime() != q.getArrivalTime())
+        return p.getArrivalTime() < q.getArrivalTime();
+    return p.getId() < q.getId();
+}
+
+void ShortestJobFirst_NonPreemptive(vector<Process> &processes)
+{
+    int time = 0, executedCount = 0;
+
+    sort(processes.begin(), processes.end(), compareByArrival);
+
+    while (executedCount != processes.size())
+    {
+        int shortestJobIndex = -1;
+        int shortestJobBurst = INT_MAX;
+
+        for (int i = 0; i < processes.size(); i++)
+        {
+            Process &p = processes[i];
+
+            if (p.getArrivalTime() <= time && p.getCompletionTime() == 0)
+            {
+                if (p.getBurstTime() < shortestJobBurst)
+                {
+                    shortestJobBurst = p.getBurstTime();
+                    shortestJobIndex = i;
+                }
+            }
+        }
+
+        if (shortestJobIndex != -1)
+        {
+            Process &currentProcess = processes[shortestJobIndex];
+            currentProcess.setCompletionTime(time + currentProcess.getBurstTime());
+            executedCount++;
+            time += currentProcess.getBurstTime();
+        }
+        else
+        {
+            time++;
+        }
+    }
+
+    for (Process &p : processes)
+    {
+        p.setTurnAroundTime(p.getCompletionTime() - p.getArrivalTime());
+        p.setWaitingTime(p.getTurnAroundTime() - p.getBurstTime());
+    }
+
+    // Sorting the processes by Process ID
+    sort(processes.begin(), processes.end(), [](const Process &a, const Process &b)
+         { return a.getId() < b.getId(); });
+
+    // Display the results sorted by Process ID
+    cout << "\n\tProcess ID\tArrival Time\tBurst Time\tCompletion Time\t\tTurn Around Time\tWaiting Time";
+
+    for (const Process &p : processes)
+    {
+        cout << "\n\t" << p.getId() << "\t\t" << p.getArrivalTime() << "\t\t" << p.getBurstTime()
+             << "\t\t" << p.getCompletionTime() << "\t\t\t" << p.getTurnAroundTime() << "\t\t\t" << p.getWaitingTime();
+    }
+}
+
+int main()
+{
+    int jobCount;
+    cout << "\nNo. of processes : ";
+    cin >> jobCount;
+
+    vector<Process> processes(jobCount);
+
+    for (int i = 0; i < jobCount; i++)
+    {
+        processes[i].setId(i + 1);
+        int arrivalTime, burstTime;
+        cout << "\nProcess ID: " << processes[i].getId();
+        cout << "\nEnter the Process Arrival Time: ";
+        cin >> arrivalTime;
+        processes[i].setArrivalTime(arrivalTime);
+        cout << "\nEnter the Process Burst Time: ";
+        cin >> burstTime;
+        processes[i].setBurstTime(burstTime);
+    }
+
+    ShortestJobFirst_NonPreemptive(processes);
+    return 0;
+}

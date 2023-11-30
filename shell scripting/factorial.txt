@@ -1,0 +1,26 @@
+// recurrent
+factorial()
+{
+          if [ $1 -le 1 ]
+          then
+                 return 1
+          else
+           a=`expr $1 - 1`
+          factorial $a
+          b=`expr $1 \* $?`
+          return $b
+          fi
+}
+factorial $1
+echo "factorial $1 = $?"
+
+
+// non recurrent
+
+read n1
+result=1
+for ((i=1; i<=$n1; i++)); do
+result=$((result * i))
+done
+echo "factorial of $n1 is: $result"
+
