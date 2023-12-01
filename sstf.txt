@@ -1,0 +1,58 @@
+#include "stdio.h"
+#include "stdlib.h"
+#include "stdbool.h"
+
+int main()
+{
+    int i, no_of_requests, initial_head;
+    printf("Enter the number of requests: ");
+    scanf("%d", &no_of_requests);
+
+    // Arrays to store requests and their status (visited or not)
+    int req_track_numbers[no_of_requests];
+    bool visited[no_of_requests];
+
+    // Input requests and initialize flags
+    printf("Enter the requests: ");
+    for (i = 0; i < no_of_requests; ++i)
+    {
+        scanf("%d", &req_track_numbers[i]);
+        visited[i] = false;
+    }
+
+    // Input initial position of the R/W head
+    printf("Enter initial position of R/W head: ");
+    scanf("%d", &initial_head);
+
+    int seek_time = 0;
+    printf("%d -> ", initial_head);
+
+    int n = no_of_requests;
+    while (n)
+    {
+        int min = 1e9;
+        int min_track_number, position;
+
+        // Find the request with the shortest seek time
+        for (i = 0; i < no_of_requests; i++)
+        {
+            if (abs(initial_head - req_track_numbers[i]) < min && !visited[i])
+            {
+                min = abs(initial_head - req_track_numbers[i]);
+                min_track_number = req_track_numbers[i];
+                position = i;
+            }
+        }
+
+        // Move the head to the selected track
+        initial_head = req_track_numbers[position];
+        visited[position] = true;
+        printf("%d ->", min_track_number);
+        seek_time += min;
+        n--;
+    }
+
+    printf("\nSeek Time: %d\n", seek_time);
+
+    return 0;
+}
