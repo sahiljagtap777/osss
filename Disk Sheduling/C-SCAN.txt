@@ -1,89 +1,71 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <bits/stdc++.h>
+using namespace std;
 
-int findClosest(int head, int request[], int n, int isUp) {
-    if (isUp) {
-        int i = 0;
-        while (request[i] < head && i < n) {
-            i++;
-        }
-        return i;
-    } else {
-        int i = n - 1;
-        while (request[i] > head && i >= 0) {
-            i--;
-        }
-        return i;
+void CSCAN(vector<int>& arr, int head) {
+    int seek_count = 0;
+    int distance, cur_track;
+    vector<int> left, right;
+    vector<int> seek_sequence;
+
+    left.push_back(0);
+    right.push_back(200);
+
+    for (int i = 0; i < arr.size(); i++) {
+        if (arr[i] < head)
+            left.push_back(arr[i]);
+        if (arr[i] > head)
+            right.push_back(arr[i]);
     }
+
+    sort(left.begin(), left.end());
+    sort(right.begin(), right.end());
+
+    for (int i = 0; i < right.size(); i++) {
+        cur_track = right[i];
+        seek_sequence.push_back(cur_track);
+
+        distance = abs(cur_track - head);
+        seek_count += distance;
+        head = cur_track;
+    }
+
+    head = 0;
+    seek_count += (200 - 1);
+
+    for (int i = 0; i < left.size(); i++) {
+        cur_track = left[i];
+        seek_sequence.push_back(cur_track);
+
+        distance = abs(cur_track - head);
+        seek_count += distance;
+        head = cur_track;
+    }
+    seek_count -= 1;
+
+    cout << "Seek Sequence is:" << endl;
+
+    for (int i = 0; i < seek_sequence.size(); i++) {
+        cout << seek_sequence[i] << " ";
+    }
+    cout << "\nSeek Time: " << seek_count << endl;
 }
 
 int main() {
-    int n, head, isUp;
+    int size, head;
+    cout << "Enter the number of requests: ";
+    cin >> size;
 
-    printf("Enter no of requests: ");
-    scanf("%d", &n);
-
-    int request[n];
-
-    printf("Enter request queue: ");
-    for (int i = 0; i < n; i++) {
-        scanf("%d", &request[i]);
+    vector<int> arr(size);
+    cout << "Enter the requests: ";
+    for (int i = 0; i < size; i++) {
+        cin >> arr[i];
     }
 
-    printf("Enter current R/W head: ");
-    scanf("%d", &head);
+    cout << "Enter the initial position of R/W head: ";
+    cin >> head;
 
-    printf("Enter direction (1 for GREATER, 0 for LESSER): ");
-    scanf("%d", &isUp);
-
-    for (int i = 0; i < n - 1; i++) {
-        for (int j = 0; j < n - i - 1; j++) {
-            if (request[j] > request[j + 1]) {
-                int temp = request[j];
-                request[j] = request[j + 1];
-                request[j + 1] = temp;
-            }
-        }
-    }
-
-    int totalSeekTime = 0;
-    int cur;
-
-    if (isUp) {
-        cur = findClosest(head, request, n, isUp);
-        printf("Request\tTracks Traversed\n");
-        for (int i = cur; i < n; i++) {
-            printf("%d\t\t%d\n", request[i], abs(request[i] - head));
-            totalSeekTime += abs(request[i] - head);
-            head = request[i];
-        }
-        totalSeekTime += head - request[0];
-        for (int i = 0; i < cur; i++) {
-            printf("%d\t\t%d\n", request[i], abs(request[i] - head));
-            totalSeekTime += abs(request[i] - head);
-            head = request[i];
-        }
-
-    } else {
-        cur = findClosest(head, request, n, isUp);
-        printf("Request\tTracks Traversed\n");
-        for (int i = cur; i >= 0; i--) {
-            printf("%d\t\t%d\n", request[i], abs(request[i] - head));
-            totalSeekTime += abs(request[i] - head);
-            head = request[i];
-        }
-        totalSeekTime += request[n - 1] - head;
-        for (int i = n - 1; i > cur; i--) {
-            printf("%d\t\t%d\n", request[i], abs(request[i] - head));
-            totalSeekTime += abs(request[i] - head);
-            head = request[i];
-        }
-    }
-
-    printf("Number of seek operations: %d\n", totalSeekTime);
-
-    double avgSeekLength = (double)totalSeekTime / n;
-    printf("Average seek length: %f\n", avgSeekLength);
+    cout << "Initial position of head: " << head << endl;
+    CSCAN(arr, head);
 
     return 0;
 }

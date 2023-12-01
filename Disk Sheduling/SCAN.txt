@@ -1,86 +1,105 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-int findClosest(int head, int request[], int n, int isUp) {
-    if (isUp) {
-        int i = 0;
-        while (request[i] < head && i < n) {
-            i++;
-        }
-        return i;
-    } else {
-        int i = n - 1;
-        while (request[i] > head && i >= 0) {
-            i--;
-        }
-        return i;
-    }
+#define MAX_REQUESTS 100
+
+// Custom comparison function for sorting requests
+int compare(const void *a, const void *b)
+{
+    return (*(int *)a - *(int *)b);
 }
 
-int main() {
-    int n, head, isUp;
+// Function to perform the SCAN algorithm
+void SCAN(int requests[], int size, int initialPosition, const char *direction)
+{
+    int seekCount = 0;
+    int head = initialPosition;
 
-    printf("Enter no of requests: ");
-    scanf("%d", &n);
+    // Arrays to store requests on the left and right sides
+    int leftRequests[MAX_REQUESTS], rightRequests[MAX_REQUESTS];
+    int leftSize = 0, rightSize = 0;
 
-    int request[n];
-
-    printf("Enter request queue: ");
-    for (int i = 0; i < n; i++) {
-        scanf("%d", &request[i]);
+    // Initialize the left and right sides based on the initial direction
+    if (strcmp(direction, "left") == 0)
+    {
+        leftRequests[leftSize++] = 0;
+    }
+    else if (strcmp(direction, "right") == 0)
+    {
+        rightRequests[rightSize++] = 199; // Adjust for the disk size
     }
 
-    printf("Enter current R/W head: ");
-    scanf("%d", &head);
+    // Partition requests into left and right sides
+    for (int i = 0; i < size; i++)
+    {
+        if (requests[i] < head)
+        {
+            leftRequests[leftSize++] = requests[i];
+        }
+        else
+        {
+            rightRequests[rightSize++] = requests[i];
+        }
+    }
 
-    printf("Enter direction (1 for GREATER, 0 for LESSER): ");
-    scanf("%d", &isUp);
+    // Sort both sides
+    qsort(leftRequests, leftSize, sizeof(int), compare);
+    qsort(rightRequests, rightSize, sizeof(int), compare);
 
-    for (int i = 0; i < n - 1; i++) {
-        for (int j = 0; j < n - i - 1; j++) {
-            if (request[j] > request[j + 1]) {
-                int temp = request[j];
-                request[j] = request[j + 1];
-                request[j + 1] = temp;
+    // Process the requests while moving in the specified direction
+    for (int i = 0; i < 2; i++)
+    {
+        if (strcmp(direction, "left") == 0)
+        {
+            for (int j = leftSize - 1; j >= 0; j--)
+            {
+                int track = leftRequests[j];
+                printf("%d ", track); // Print the current track
+                seekCount += abs(track - head);
+                head = track;
             }
+            direction = "right";
+        }
+        else if (strcmp(direction, "right") == 0)
+        {
+            for (int j = 0; j < rightSize; j++)
+            {
+                int track = rightRequests[j];
+                printf("%d ", track); // Print the current track
+                seekCount += abs(track - head);
+                head = track;
+            }
+            direction = "left";
         }
     }
 
-    int totalSeekTime = 0;
-    int cur;
+    printf("\nSeek Time: %d\n", seekCount);
+}
 
-    if (isUp) {
-        cur = findClosest(head, request, n, isUp);
-        printf("Request\tTracks Traversed\n");
-        for (int i = cur; i < n; i++) {
-            printf("%d\t\t%d\n", request[i], abs(request[i] - head));
-            totalSeekTime += abs(request[i] - head);
-            head = request[i];
-        }
-        for (int i = cur - 1; i >= 0; i--) {
-            printf("%d\t\t%d\n", request[i], abs(request[i] - head));
-            totalSeekTime += abs(request[i] - head);
-            head = request[i];
-        }
-    } else {
-        cur = findClosest(head, request, n, isUp);
-        printf("Request\tTracks Traversed\n");
-        for (int i = cur; i >= 0; i--) {
-            printf("%d\t\t%d\n", request[i], abs(request[i] - head));
-            totalSeekTime += abs(request[i] - head);
-            head = request[i];
-        }
-        for (int i = cur + 1; i < n; i++) {
-            printf("%d\t\t%d\n", request[i], abs(request[i] - head));
-            totalSeekTime += abs(request[i] - head);
-            head = request[i];
-        }
+int main()
+{
+    int requestCount, initialPosition;
+    char direction[10];
+
+    printf("Enter initial position of R/W head: ");
+    scanf("%d", &initialPosition);
+
+    printf("Enter Direction (left or right): ");
+    scanf("%s", direction);
+
+    printf("Enter the number of requests: ");
+    scanf("%d", &requestCount);
+
+    int requests[MAX_REQUESTS];
+
+    printf("Enter the requests: ");
+    for (int i = 0; i < requestCount; i++)
+    {
+        scanf("%d", &requests[i]);
     }
 
-    printf("Number of seek operations: %d\n", totalSeekTime);
-
-    double avgSeekLength = (double)totalSeekTime / n;
-    printf("Average seek length: %f\n", avgSeekLength);
+    SCAN(requests, requestCount, initialPosition, direction);
 
     return 0;
 }
